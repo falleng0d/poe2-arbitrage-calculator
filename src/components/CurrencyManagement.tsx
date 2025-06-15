@@ -43,6 +43,7 @@ interface CurrencyFormData {
   name: string;
   selectedIcon: string;
   customIcon?: string;
+  goldCostPerUnit: string;
 }
 
 export const CurrencyManagement = ({
@@ -56,11 +57,12 @@ export const CurrencyManagement = ({
   const [formData, setFormData] = useState<CurrencyFormData>({
     name: '',
     selectedIcon: 'CurrencyIdentification',
+    goldCostPerUnit: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast({
         title: 'Error',
@@ -70,8 +72,27 @@ export const CurrencyManagement = ({
       return;
     }
 
+    if (!formData.goldCostPerUnit.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Gold cost per unit is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const goldCost = parseFloat(formData.goldCostPerUnit);
+    if (isNaN(goldCost) || goldCost < 0) {
+      toast({
+        title: 'Error',
+        description: 'Gold cost per unit must be a valid positive number',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const isDuplicate = currencies.some(
-      currency => 
+      currency =>
         currency.name.toLowerCase() === formData.name.toLowerCase() &&
         currency.id !== editingCurrency?.id
     );
@@ -90,6 +111,7 @@ export const CurrencyManagement = ({
         name: formData.name.trim(),
         icon: formData.selectedIcon,
         isCustomIcon: !!formData.customIcon,
+        goldCostPerUnit: goldCost,
       });
       toast({
         title: 'Success',
@@ -100,6 +122,7 @@ export const CurrencyManagement = ({
         name: formData.name.trim(),
         icon: formData.selectedIcon,
         isCustomIcon: !!formData.customIcon,
+        goldCostPerUnit: goldCost,
       });
       toast({
         title: 'Success',
@@ -115,6 +138,7 @@ export const CurrencyManagement = ({
     setFormData({
       name: '',
       selectedIcon: 'CurrencyIdentification',
+      goldCostPerUnit: '',
     });
     setEditingCurrency(null);
   };
@@ -125,6 +149,7 @@ export const CurrencyManagement = ({
       name: currency.name,
       selectedIcon: currency.icon,
       customIcon: currency.isCustomIcon ? currency.icon : undefined,
+      goldCostPerUnit: currency.goldCostPerUnit.toString(),
     });
     setIsDialogOpen(true);
   };
@@ -164,6 +189,22 @@ export const CurrencyManagement = ({
                   placeholder="Enter currency name"
                   required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="goldCost">Gold Cost Per Unit</Label> <Input
+                id="goldCost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.goldCostPerUnit}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  goldCostPerUnit: e.target.value
+                })}
+                placeholder="Enter gold cost per unit"
+                required
+              />
               </div>
               
               <IconPicker
@@ -241,9 +282,14 @@ export const CurrencyManagement = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Created: {currency.createdAt.toLocaleDateString()}
-                </p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">
+                    Gold Cost: {currency.goldCostPerUnit} per unit
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Created: {currency.createdAt.toLocaleDateString()}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           );

@@ -36,19 +36,42 @@ export const findArbitrageOpportunities = (
         const rateCA = matrix[currencyC]?.[currencyA];
 
         if (rateAB && rateBC && rateCA) {
-          const finalAmount = rateAB * rateBC * rateCA;
-          const profitPercentage = (finalAmount - 1) * 100;
+          // Get currency objects to access gold costs
+          const currencyBObj = currencies.find(c => c.id === currencyB);
+          const currencyCObj = currencies.find(c => c.id === currencyC);
+          const currencyAObj = currencies.find(c => c.id === currencyA);
 
-          if (profitPercentage > 0.01) { // Only show opportunities with > 0.01% profit
-            const riskScore = calculateRiskScore(profitPercentage, [rateAB, rateBC, rateCA]);
-            
-            opportunities.push({
-              id: `${currencyA}-${currencyB}-${currencyC}`,
-              path: [currencyA, currencyB, currencyC, currencyA],
-              rates: [rateAB, rateBC, rateCA],
-              profitPercentage,
-              riskScore,
-            });
+          if (currencyBObj && currencyCObj && currencyAObj) {
+            // Calculate final amount after conversions (starting with 1 unit of currency A)
+            const finalAmount = rateAB * rateBC * rateCA;
+
+            // Calculate total gold cost for the conversion chain
+            // Starting with 1 unit of currency A:
+            // A->B: Pay goldCostPerUnit of B for each unit of B we want (rateAB units)
+            const goldCostAB = currencyBObj.goldCostPerUnit * rateAB;
+            // B->C: Pay goldCostPerUnit of C for each unit of C we want (rateBC units per B, so rateBC units total)
+            const goldCostBC = currencyCObj.goldCostPerUnit * rateBC;
+            // C->A: Pay goldCostPerUnit of A for each unit of A we want (rateCA units per C, so rateCA units total)
+            const goldCostCA = currencyAObj.goldCostPerUnit * rateCA;
+
+            const totalGoldCost = goldCostAB + goldCostBC + goldCostCA;
+
+            // Calculate profit based purely on currency conversions
+            const profitPercentage = (finalAmount - 1) * 100;
+
+            // Show opportunities based on conversion profit, gold cost is separate information
+            if (profitPercentage > 0.01) { // Only show opportunities with > 0.01% profit
+              const riskScore = calculateRiskScore(profitPercentage, [rateAB, rateBC, rateCA]);
+
+              opportunities.push({
+                id: `${currencyA}-${currencyB}-${currencyC}`,
+                path: [currencyA, currencyB, currencyC, currencyA],
+                rates: [rateAB, rateBC, rateCA],
+                profitPercentage,
+                riskScore,
+                totalGoldCost, // Gold cost is informational only
+              });
+            }
           }
         }
       }

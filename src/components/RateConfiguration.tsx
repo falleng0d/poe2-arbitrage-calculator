@@ -3,8 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, RotateCcw, Save, TrendingUp } from 'lucide-react';
+import { RotateCcw, Save, TrendingUp } from 'lucide-react';
 import { ConversionRate, Currency } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { IconDisplay } from '@/components/app/IconDisplay';
@@ -110,30 +109,6 @@ export const RateConfiguration = ({
     setHasChanges(false);
   };
 
-  const getCurrencyName = (id: string) => {
-    return currencies.find(c => c.id === id)?.name || 'Unknown';
-  };
-
-  const getCurrency = (id: string) => {
-    return currencies.find(c => c.id === id);
-  };
-
-  const getOutlierRates = () => {
-    const validRates = rateInputs.filter(input => input.isValid && input.rate.trim() !== '');
-    if (validRates.length === 0) return [];
-    
-    const rates = validRates.map(input => parseFloat(input.rate));
-    const avg = rates.reduce((sum, rate) => sum + rate, 0) / rates.length;
-    const stdDev = Math.sqrt(rates.reduce((sum, rate) => sum + Math.pow(rate - avg, 2), 0) / rates.length);
-    
-    return validRates.filter(input => {
-      const rate = parseFloat(input.rate);
-      return Math.abs(rate - avg) > stdDev * 2; // Rates more than 2 standard deviations from mean
-    });
-  };
-
-  const outlierRates = getOutlierRates();
-
   if (currencies.length < 2) {
     return (
       <div className="container mx-auto p-6">
@@ -167,37 +142,6 @@ export const RateConfiguration = ({
           </Button>
         </div>
       </div>
-
-      {outlierRates.length > 0 && (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-amber-800">
-              <AlertTriangle className="h-5 w-5" />
-              <span>Potential Outlier Rates Detected</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-amber-700 mb-2">
-              The following rates are significantly different from the average. Please verify:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {outlierRates.map(rate => {
-                const fromCurrency = getCurrency(rate.fromCurrencyId);
-                const toCurrency = getCurrency(rate.toCurrencyId);
-                return (
-                  <Badge key={`${rate.fromCurrencyId}-${rate.toCurrencyId}`} variant="secondary" className="flex items-center space-x-1">
-                    <IconDisplay iconName={fromCurrency?.icon || ''} className="h-3 w-3" />
-                    <span>{getCurrencyName(rate.fromCurrencyId)}</span>
-                    <span>→</span>
-                    <IconDisplay iconName={toCurrency?.icon || ''} className="h-3 w-3" />
-                    <span>{getCurrencyName(rate.toCurrencyId)}: {rate.rate}</span>
-                  </Badge>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid gap-6">
         {currencies.map(fromCurrency => (
@@ -255,7 +199,7 @@ export const RateConfiguration = ({
 
       <Card className="bg-muted/50">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-primary">
                 {rateInputs.filter(input => input.isValid && input.rate.trim() !== '').length}
@@ -263,16 +207,10 @@ export const RateConfiguration = ({
               <p className="text-sm text-muted-foreground">Valid Rates</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-secondary">
+              <p className="text-2xl font-bold text-primary">
                 {currencies.length * (currencies.length - 1)}
               </p>
               <p className="text-sm text-muted-foreground">Total Possible Rates</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-accent">
-                {outlierRates.length}
-              </p>
-              <p className="text-sm text-muted-foreground">Potential Outliers</p>
             </div>
           </div>
         </CardContent>

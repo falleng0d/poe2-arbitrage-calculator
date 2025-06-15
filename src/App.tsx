@@ -17,6 +17,10 @@ function App() {
     activeTab: 'currencies',
   });
 
+  useEffect(() => {
+    console.log(state);
+  }, [state])
+
   // Load data from localStorage on mount
   useEffect(() => {
     const savedCurrencies = storage.loadCurrencies();
@@ -34,7 +38,9 @@ function App() {
     if (state.currencies.length < 3 || state.rates.length === 0) {
       return [];
     }
-    return findArbitrageOpportunities(state.currencies, state.rates);
+    const opportunities = findArbitrageOpportunities(state.currencies, state.rates);
+    console.log('opportunities', opportunities);
+    return opportunities;
   }, [state.currencies, state.rates]);
 
   // Update opportunities when they change
@@ -91,7 +97,6 @@ function App() {
   };
 
   const renderActiveTab = () => {
-    console.log(`Rendering ${state.activeTab} tab`);
     switch (state.activeTab) {
       case 'currencies':
         return (

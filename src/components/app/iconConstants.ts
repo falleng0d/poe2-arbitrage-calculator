@@ -119,13 +119,10 @@ export const loadAvailableIcons = async (): Promise<IconOption[]> => {
 
 // Utility function to get icon path by name
 export const getIconPath = (iconName: string): string => {
-  // If iconName already includes an extension, use it as is
   if (iconName.includes('.')) {
     return `/icons/${iconName}`;
   }
 
-  // Otherwise, assume it's a PNG file
-  console.log(`getIconPath: ${iconName} => /icons/${getIconFilename(iconName)}`);
   return `/icons/${getIconFilename(iconName)}`;
 };
 

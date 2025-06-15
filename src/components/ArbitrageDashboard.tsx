@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  AlertCircle,
   ArrowRight,
   Filter,
   Search,
@@ -35,13 +34,10 @@ export const ArbitrageDashboard = ({
   const [sortBy, setSortBy] = useState<'profit' | 'risk' | 'confidence'>('profit');
   const [filterByRisk, setFilterByRisk] = useState<'all' | 'low' | 'medium' | 'high'>('all');
 
-  const getCurrencyName = (id: string) => {
-    return currencies.find(c => c.id === id)?.name || 'Unknown';
-  };
+  const getCurrencyName = useCallback((id: string) =>
+    currencies.find(c => c.id === id)?.name || 'Unknown', [currencies]);
 
-  const getCurrency = (id: string) => {
-    return currencies.find(c => c.id === id);
-  };
+  const getCurrency = (id: string) => currencies.find(c => c.id === id);
 
   const getRiskLevel = (riskScore: number): 'low' | 'medium' | 'high' => {
     if (riskScore <= 3) return 'low';
@@ -281,6 +277,21 @@ export const ArbitrageDashboard = ({
                   </div>
                 </div>
 
+                {/* Gold Cost Information */}
+                {opportunity.totalGoldCost !== undefined && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-muted-foreground">GOLD COST</h4>
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Total Gold Required:</span>
+                        <span className="font-mono font-semibold text-amber-700">
+                          {formatCurrency(opportunity.totalGoldCost, 0)} gold
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Risk and Confidence */}
                 <div className="grid grid-cols-2 gap-4 pt-2 border-t">
                   <div className="text-center">
@@ -292,15 +303,6 @@ export const ArbitrageDashboard = ({
                     <p className="text-lg font-semibold text-primary">{confidenceScore}%</p>
                   </div>
                 </div>
-
-                {confidenceScore < 50 && (
-                  <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                    <p className="text-sm text-amber-700">
-                      Low confidence - verify rates before trading
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           );

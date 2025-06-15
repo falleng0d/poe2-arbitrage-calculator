@@ -3,6 +3,7 @@ export interface Currency {
   name: string;
   icon: string;
   isCustomIcon?: boolean;
+  goldCostPerUnit: number;
   createdAt: Date;
 }
 
@@ -21,6 +22,7 @@ export interface ArbitrageOpportunity {
   riskScore: number;
   minAmount?: number;
   maxAmount?: number;
+  totalGoldCost?: number;
 }
 
 export interface RateMatrix {
