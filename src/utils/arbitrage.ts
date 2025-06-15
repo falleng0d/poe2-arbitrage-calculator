@@ -164,7 +164,10 @@ const calculateRiskScore = (profitPercentage: number, rates: number[]): number =
 };
 
 export const formatCurrency = (amount: number, decimals: number = 4): string => {
-  return amount.toFixed(decimals);
+  return amount.toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
 };
 
 export const getConfidenceScore = (riskScore: number): number => {

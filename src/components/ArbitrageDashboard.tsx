@@ -309,14 +309,15 @@ export const ArbitrageDashboard = ({
                 {/* Trade Path */}
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm text-muted-foreground">TRADE PATH</h4>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap justify-center">
                     {opportunity.path.map((currencyId, index) => {
                       const currency = getCurrency(currencyId);
+                      const quantity = opportunity.quantities[index];
                       return (
                         <React.Fragment key={`${currencyId}-${index}`}>
-                          <Badge variant="secondary" className="font-mono flex items-center space-x-1">
-                            <IconDisplay iconName={currency?.icon || ''} className="h-5 w-5" />
-                            <span>{getCurrencyName(currencyId)}</span>
+                          <Badge variant="secondary" className="font-mono flex items-center gap-1 px-2">
+                            <IconDisplay iconName={currency?.icon || ''} className="h-10 w-10" />
+                            <span>x{quantity}</span>
                           </Badge>
                           {index < opportunity.path.length - 1 && (
                             <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -373,15 +374,21 @@ export const ArbitrageDashboard = ({
                 )}
 
                 {/* Risk and Confidence */}
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                  <div className="text-center">
+                <div className={`flex flex-wrap gap-x-10 gap-y-2 pt-2 px-10 justify-between border-t`}>
+                  <div className="text-center m-auto">
                     <p className="text-sm text-muted-foreground">Risk Score</p>
                     <p className="text-lg font-semibold">{formatCurrency(opportunity.riskScore, 1)}/10</p>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center m-auto">
                     <p className="text-sm text-muted-foreground">Confidence</p>
                     <p className="text-lg font-semibold text-primary">{confidenceScore.toFixed(2)}%</p>
                   </div>
+                  {opportunity.totalGoldCost !== undefined && (
+                    <div className="text-center m-auto">
+                      <p className="text-sm text-muted-foreground">Gold Cost</p>
+                      <p className="text-lg font-semibold text-primary">{formatCurrency(opportunity.totalGoldCost, 0)} gold</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
