@@ -234,7 +234,7 @@ export const ArbitrageDashboard = ({
                 {/* Trade Path */}
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm text-muted-foreground">TRADE PATH</h4>
-                  <div className="flex items-center space-x-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {opportunity.path.map((currencyId, index) => {
                       const currency = getCurrency(currencyId);
                       return (
