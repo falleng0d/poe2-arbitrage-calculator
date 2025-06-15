@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, RotateCcw, Save, TrendingUp } from 'lucide-react';
 import { ConversionRate, Currency } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { IconDisplay } from '@/components/app/IconDisplay';
 
 interface RateConfigurationProps {
   currencies: Currency[];
@@ -49,7 +50,6 @@ export const RateConfiguration = ({
         }
       });
     });
-    
     setRateInputs(inputs);
     setHasChanges(false);
   }, [currencies, rates]);
@@ -112,6 +112,10 @@ export const RateConfiguration = ({
 
   const getCurrencyName = (id: string) => {
     return currencies.find(c => c.id === id)?.name || 'Unknown';
+  };
+
+  const getCurrency = (id: string) => {
+    return currencies.find(c => c.id === id);
   };
 
   const getOutlierRates = () => {
@@ -177,11 +181,19 @@ export const RateConfiguration = ({
               The following rates are significantly different from the average. Please verify:
             </p>
             <div className="flex flex-wrap gap-2">
-              {outlierRates.map(rate => (
-                <Badge key={`${rate.fromCurrencyId}-${rate.toCurrencyId}`} variant="secondary">
-                  {getCurrencyName(rate.fromCurrencyId)} → {getCurrencyName(rate.toCurrencyId)}: {rate.rate}
-                </Badge>
-              ))}
+              {outlierRates.map(rate => {
+                const fromCurrency = getCurrency(rate.fromCurrencyId);
+                const toCurrency = getCurrency(rate.toCurrencyId);
+                return (
+                  <Badge key={`${rate.fromCurrencyId}-${rate.toCurrencyId}`} variant="secondary" className="flex items-center space-x-1">
+                    <IconDisplay iconName={fromCurrency?.icon || ''} className="h-3 w-3" />
+                    <span>{getCurrencyName(rate.fromCurrencyId)}</span>
+                    <span>→</span>
+                    <IconDisplay iconName={toCurrency?.icon || ''} className="h-3 w-3" />
+                    <span>{getCurrencyName(rate.toCurrencyId)}: {rate.rate}</span>
+                  </Badge>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -191,7 +203,10 @@ export const RateConfiguration = ({
         {currencies.map(fromCurrency => (
           <Card key={fromCurrency.id}>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-3">
+                <div className="p-1 bg-primary/10 rounded-lg">
+                  <IconDisplay iconName={fromCurrency.icon} className="h-8 w-8" />
+                </div>
                 <span>From {fromCurrency.name}</span>
               </CardTitle>
             </CardHeader>
@@ -206,8 +221,9 @@ export const RateConfiguration = ({
                     
                     return (
                       <div key={toCurrency.id} className="space-y-2">
-                        <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}`}>
-                          To {toCurrency.name}
+                        <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}`} className="flex items-center space-x-2">
+                          <IconDisplay iconName={toCurrency.icon} className="h-6 w-6" />
+                          <span>To {toCurrency.name}</span>
                         </Label>
                         <Input
                           id={`${fromCurrency.id}-${toCurrency.id}`}
@@ -218,9 +234,9 @@ export const RateConfiguration = ({
                           value={rateInput?.rate || ''}
                           onChange={(e) => handleRateChange(fromCurrency.id, toCurrency.id, e.target.value)}
                           className={
-                            rateInput?.rate && !rateInput.isValid
+                            `${rateInput?.rate && !rateInput.isValid
                               ? 'border-destructive focus:border-destructive'
-                              : ''
+                              : ''}`
                           }
                         />
                         {rateInput?.rate && !rateInput.isValid && (
