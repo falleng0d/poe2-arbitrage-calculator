@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { IconPicker } from '@/components/app/IconPicker';
-import { getIconComponent } from '@/components/app/iconConstants';
+import { IconDisplay } from '@/components/app/IconDisplay';
 import {
   Coins,
   Edit2,
@@ -55,7 +55,7 @@ export const CurrencyManagement = ({
   const [editingCurrency, setEditingCurrency] = useState<Currency | null>(null);
   const [formData, setFormData] = useState<CurrencyFormData>({
     name: '',
-    selectedIcon: 'DollarSign',
+    selectedIcon: 'CurrencyIdentification',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -114,7 +114,7 @@ export const CurrencyManagement = ({
   const resetForm = () => {
     setFormData({
       name: '',
-      selectedIcon: 'DollarSign',
+      selectedIcon: 'CurrencyIdentification',
     });
     setEditingCurrency(null);
   };
@@ -186,14 +186,13 @@ export const CurrencyManagement = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {currencies.map((currency) => {
-          const IconComponent = getIconComponent(currency.icon);
           return (
             <Card key={currency.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
-                      <IconComponent className="h-6 w-6 text-primary" />
+                      <IconDisplay iconName={currency.icon} className="h-6 w-6" />
                     </div>
                     <span className="text-lg font-semibold">{currency.name}</span>
                   </div>

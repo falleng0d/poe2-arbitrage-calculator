@@ -16,10 +16,10 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   return (
     <nav className="border-b border-border bg-background">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 w-full">
           <div className="flex items-center space-x-2">
             <TrendingUp className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">ArbitrageCalc</h1>
+            <h1 className="text-2xl font-bold text-foreground">PoE2 Arbitrage Calculator</h1>
           </div>
           
           <div className="flex space-x-1">
