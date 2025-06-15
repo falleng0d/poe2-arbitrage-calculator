@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { ArbitrageOpportunity, Currency } from '@/types';
 import { formatCurrency, getConfidenceScore } from '@/utils/arbitrage';
+import { IconDisplay } from '@/components/app/IconDisplay';
 
 interface ArbitrageDashboardProps {
   currencies: Currency[];
@@ -36,6 +37,10 @@ export const ArbitrageDashboard = ({
 
   const getCurrencyName = (id: string) => {
     return currencies.find(c => c.id === id)?.name || 'Unknown';
+  };
+
+  const getCurrency = (id: string) => {
+    return currencies.find(c => c.id === id);
   };
 
   const getRiskLevel = (riskScore: number): 'low' | 'medium' | 'high' => {
@@ -234,16 +239,20 @@ export const ArbitrageDashboard = ({
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm text-muted-foreground">TRADE PATH</h4>
                   <div className="flex items-center space-x-2 flex-wrap">
-                    {opportunity.path.map((currencyId, index) => (
-                      <React.Fragment key={`${currencyId}-${index}`}>
-                        <Badge variant="secondary" className="font-mono">
-                          {getCurrencyName(currencyId)}
-                        </Badge>
-                        {index < opportunity.path.length - 1 && (
-                          <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        )}
-                      </React.Fragment>
-                    ))}
+                    {opportunity.path.map((currencyId, index) => {
+                      const currency = getCurrency(currencyId);
+                      return (
+                        <React.Fragment key={`${currencyId}-${index}`}>
+                          <Badge variant="secondary" className="font-mono flex items-center space-x-1">
+                            <IconDisplay iconName={currency?.icon || ''} className="h-5 w-5" />
+                            <span>{getCurrencyName(currencyId)}</span>
+                          </Badge>
+                          {index < opportunity.path.length - 1 && (
+                            <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -251,16 +260,24 @@ export const ArbitrageDashboard = ({
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm text-muted-foreground">CONVERSION RATES</h4>
                   <div className="grid grid-cols-1 gap-2">
-                    {opportunity.rates.map((rate, index) => (
-                      <div key={index} className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">
-                          {getCurrencyName(opportunity.path[index])} → {getCurrencyName(opportunity.path[index + 1])}
-                        </span>
-                        <span className="font-mono font-semibold">
-                          {formatCurrency(rate)}
-                        </span>
-                      </div>
-                    ))}
+                    {opportunity.rates.map((rate, index) => {
+                      const fromCurrency = getCurrency(opportunity.path[index]);
+                      const toCurrency = getCurrency(opportunity.path[index + 1]);
+                      return (
+                        <div key={index} className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground flex items-center space-x-1">
+                            <IconDisplay iconName={fromCurrency?.icon || ''} className="h-8 w-8" />
+                            <span>{getCurrencyName(opportunity.path[index])}</span>
+                            <span>→</span>
+                            <IconDisplay iconName={toCurrency?.icon || ''} className="h-8 w-8" />
+                            <span>{getCurrencyName(opportunity.path[index + 1])}</span>
+                          </span>
+                          <span className="font-mono font-semibold">
+                            {formatCurrency(rate)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
