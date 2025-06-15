@@ -16,6 +16,7 @@ function App() {
     opportunities: [],
     activeTab: 'currencies',
   });
+  const [precision, setPrecision] = useState(1000);
 
   useEffect(() => {
     console.log(state);
@@ -33,15 +34,15 @@ function App() {
     }));
   }, []);
 
-  // Calculate arbitrage opportunities when currencies or rates change
+  // Calculate arbitrage opportunities when currencies, rates, or precision change
   const opportunities = useMemo(() => {
     if (state.currencies.length < 3 || state.rates.length === 0) {
       return [];
     }
-    const opportunities = findArbitrageOpportunities(state.currencies, state.rates);
+    const opportunities = findArbitrageOpportunities(state.currencies, state.rates, precision);
     console.log('opportunities', opportunities);
     return opportunities;
-  }, [state.currencies, state.rates]);
+  }, [state.currencies, state.rates, precision]);
 
   // Update opportunities when they change
   useEffect(() => {
@@ -96,6 +97,10 @@ function App() {
     setState(prev => ({ ...prev, activeTab: tab }));
   };
 
+  const handlePrecisionChange = (newPrecision: number) => {
+    setPrecision(newPrecision);
+  };
+
   const renderActiveTab = () => {
     switch (state.activeTab) {
       case 'currencies':
@@ -120,6 +125,7 @@ function App() {
           <ArbitrageDashboard
             currencies={state.currencies}
             opportunities={state.opportunities}
+            onPrecisionChange={handlePrecisionChange}
           />
         );
       default:

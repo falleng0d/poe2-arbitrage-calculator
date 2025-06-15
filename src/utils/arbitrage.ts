@@ -1,5 +1,60 @@
 import { ArbitrageOpportunity, ConversionRate, Currency, RateMatrix } from '@/types';
 
+// Helper function to calculate the greatest common divisor
+const gcd = (a: number, b: number): number => {
+  return b === 0 ? a : gcd(b, a % b);
+};
+
+// Helper function to calculate the least common multiple
+const lcm = (a: number, b: number): number => {
+  return Math.abs(a * b) / gcd(a, b);
+};
+
+// Helper function to find the LCM of an array of numbers
+const lcmArray = (numbers: number[]): number => {
+  return numbers.reduce((acc, num) => lcm(acc, num), 1);
+};
+
+// Convert decimal rates to integer quantities
+const calculateQuantities = (rates: number[], precision: number = 1000): { quantities: number[], baseAmount: number } => {
+  // Start with base amount of 1 and calculate the chain
+  let currentAmount = 1;
+  const quantities: number[] = [currentAmount];
+
+  // Calculate quantities through the conversion chain
+  for (let i = 0; i < rates.length; i++) {
+    currentAmount = currentAmount * rates[i];
+    quantities.push(currentAmount);
+  }
+
+  // Find the smallest multiplier that makes all quantities integers
+  // We'll try different multipliers starting from small values up to the precision limit
+  let multiplier = 1;
+  let maxIterations = precision; // Use precision as the limit
+
+  while (maxIterations > 0) {
+    const testQuantities = quantities.map(qty => qty * multiplier);
+    const allIntegers = testQuantities.every(qty => Math.abs(qty - Math.round(qty)) < 0.0001);
+
+    if (allIntegers) {
+      // Found a good multiplier, return the integer quantities
+      return {
+        quantities: testQuantities.map(qty => Math.round(qty)),
+        baseAmount: Math.round(multiplier)
+      };
+    }
+
+    multiplier++;
+    maxIterations--;
+  }
+
+  // Fallback: use the precision as the multiplier to ensure integers
+  return {
+    quantities: quantities.map(qty => Math.round(qty * precision)),
+    baseAmount: precision
+  };
+};
+
 export const buildRateMatrix = (rates: ConversionRate[]): RateMatrix => {
   const matrix: RateMatrix = {};
   
@@ -15,7 +70,8 @@ export const buildRateMatrix = (rates: ConversionRate[]): RateMatrix => {
 
 export const findArbitrageOpportunities = (
   currencies: Currency[],
-  rates: ConversionRate[]
+  rates: ConversionRate[],
+  precision: number = 1000
 ): ArbitrageOpportunity[] => {
   const matrix = buildRateMatrix(rates);
   const opportunities: ArbitrageOpportunity[] = [];
@@ -45,17 +101,6 @@ export const findArbitrageOpportunities = (
             // Calculate final amount after conversions (starting with 1 unit of currency A)
             const finalAmount = rateAB * rateBC * rateCA;
 
-            // Calculate total gold cost for the conversion chain
-            // Starting with 1 unit of currency A:
-            // A->B: Pay goldCostPerUnit of B for each unit of B we want (rateAB units)
-            const goldCostAB = currencyBObj.goldCostPerUnit * rateAB;
-            // B->C: Pay goldCostPerUnit of C for each unit of C we want (rateBC units per B, so rateBC units total)
-            const goldCostBC = currencyCObj.goldCostPerUnit * rateBC;
-            // C->A: Pay goldCostPerUnit of A for each unit of A we want (rateCA units per C, so rateCA units total)
-            const goldCostCA = currencyAObj.goldCostPerUnit * rateCA;
-
-            const totalGoldCost = goldCostAB + goldCostBC + goldCostCA;
-
             // Calculate profit based purely on currency conversions
             const profitPercentage = (finalAmount - 1) * 100;
 
@@ -63,14 +108,34 @@ export const findArbitrageOpportunities = (
             if (profitPercentage > 0.01) { // Only show opportunities with > 0.01% profit
               const riskScore = calculateRiskScore(profitPercentage, [rateAB, rateBC, rateCA]);
 
-              opportunities.push({
-                id: `${currencyA}-${currencyB}-${currencyC}`,
-                path: [currencyA, currencyB, currencyC, currencyA],
-                rates: [rateAB, rateBC, rateCA],
-                profitPercentage,
-                riskScore,
-                totalGoldCost, // Gold cost is informational only
-              });
+              // Calculate proper quantities for display
+              const { quantities, baseAmount } = calculateQuantities([rateAB, rateBC, rateCA], precision);
+
+              // Only include opportunities with non-zero quantities (executable trades)
+              const hasValidQuantities = quantities.every(qty => qty > 0);
+
+              if (hasValidQuantities) {
+                // Calculate total gold cost based on the actual scaled quantities
+                // A->B: Pay goldCostPerUnit of B for each unit of B we want (quantities[1] units)
+                const goldCostAB = currencyBObj.goldCostPerUnit * quantities[1];
+                // B->C: Pay goldCostPerUnit of C for each unit of C we want (quantities[2] units)
+                const goldCostBC = currencyCObj.goldCostPerUnit * quantities[2];
+                // C->A: Pay goldCostPerUnit of A for each unit of A we want (quantities[3] units)
+                const goldCostCA = currencyAObj.goldCostPerUnit * quantities[3];
+
+                const totalGoldCost = goldCostAB + goldCostBC + goldCostCA;
+
+                opportunities.push({
+                  id: `${currencyA}-${currencyB}-${currencyC}`,
+                  path: [currencyA, currencyB, currencyC, currencyA],
+                  rates: [rateAB, rateBC, rateCA],
+                  quantities,
+                  baseAmount,
+                  profitPercentage,
+                  riskScore,
+                  totalGoldCost,
+                });
+              }
             }
           }
         }

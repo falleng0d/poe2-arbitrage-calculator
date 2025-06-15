@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { findArbitrageOpportunities, buildRateMatrix } from './arbitrage';
 import { Currency, ConversionRate } from '@/types';
 
+const divineId = "divine";
+const exaltedId = "exalted";
+const chaosId = "chaos";
+
 describe('Arbitrage Calculations', () => {
   // Test data from browser state
   const testCurrencies: Currency[] = [
@@ -10,63 +14,63 @@ describe('Arbitrage Calculations', () => {
       icon: "Divine Orb",
       isCustomIcon: false,
       goldCostPerUnit: 800,
-      id: "currency_1749988790557_lv8t05jaf",
-      createdAt: new Date("2025-06-15T11:59:50.557Z")
+      id: divineId,
+      createdAt: new Date()
     },
     {
       name: "Exalted Orb",
       icon: "Exalted Orb",
       isCustomIcon: false,
       goldCostPerUnit: 120,
-      id: "currency_1749988803476_9cemxww2b",
-      createdAt: new Date("2025-06-15T12:00:03.476Z")
+      id: exaltedId,
+      createdAt: new Date()
     },
     {
       name: "Chaos Orb",
       icon: "Chaos Orb",
       isCustomIcon: false,
       goldCostPerUnit: 160,
-      id: "currency_1749988818989_exip1pxn1",
-      createdAt: new Date("2025-06-15T12:00:18.989Z")
+      id: chaosId,
+      createdAt: new Date()
     }
   ];
 
   const testRates: ConversionRate[] = [
     {
-      fromCurrencyId: "currency_1749988790557_lv8t05jaf", // Divine Orb
-      toCurrencyId: "currency_1749988803476_9cemxww2b",   // Exalted Orb
+      fromCurrencyId: divineId,
+      toCurrencyId: exaltedId,
       rate: 720,
-      lastUpdated: new Date("2025-06-15T12:11:41.295Z")
+      lastUpdated: new Date()
     },
     {
-      fromCurrencyId: "currency_1749988790557_lv8t05jaf", // Divine Orb
-      toCurrencyId: "currency_1749988818989_exip1pxn1",   // Chaos Orb
+      fromCurrencyId: divineId,
+      toCurrencyId: chaosId,
       rate: 19.75,
-      lastUpdated: new Date("2025-06-15T12:11:41.295Z")
+      lastUpdated: new Date()
     },
     {
-      fromCurrencyId: "currency_1749988803476_9cemxww2b", // Exalted Orb
-      toCurrencyId: "currency_1749988790557_lv8t05jaf",   // Divine Orb
+      fromCurrencyId: exaltedId,
+      toCurrencyId: divineId,
       rate: 0.00132,
-      lastUpdated: new Date("2025-06-15T12:11:41.295Z")
+      lastUpdated: new Date()
     },
     {
-      fromCurrencyId: "currency_1749988803476_9cemxww2b", // Exalted Orb
-      toCurrencyId: "currency_1749988818989_exip1pxn1",   // Chaos Orb
+      fromCurrencyId: exaltedId,
+      toCurrencyId: chaosId,
       rate: 0.02564,
-      lastUpdated: new Date("2025-06-15T12:11:41.295Z")
+      lastUpdated: new Date()
     },
     {
-      fromCurrencyId: "currency_1749988818989_exip1pxn1", // Chaos Orb
-      toCurrencyId: "currency_1749988790557_lv8t05jaf",   // Divine Orb
+      fromCurrencyId: chaosId,
+      toCurrencyId: divineId,
       rate: 0.04926,
-      lastUpdated: new Date("2025-06-15T12:11:41.295Z")
+      lastUpdated: new Date()
     },
     {
-      fromCurrencyId: "currency_1749988818989_exip1pxn1", // Chaos Orb
-      toCurrencyId: "currency_1749988803476_9cemxww2b",   // Exalted Orb
+      fromCurrencyId: chaosId,
+      toCurrencyId: exaltedId,
       rate: 330,
-      lastUpdated: new Date("2025-06-15T12:11:41.295Z")
+      lastUpdated: new Date()
     }
   ];
 
@@ -74,19 +78,14 @@ describe('Arbitrage Calculations', () => {
     it('should build a rate matrix correctly', () => {
       const matrix = buildRateMatrix(testRates);
       
-      expect(matrix["currency_1749988790557_lv8t05jaf"]["currency_1749988803476_9cemxww2b"]).toBe(720);
-      expect(matrix["currency_1749988790557_lv8t05jaf"]["currency_1749988818989_exip1pxn1"]).toBe(19.75);
-      expect(matrix["currency_1749988803476_9cemxww2b"]["currency_1749988790557_lv8t05jaf"]).toBe(0.00132);
+      expect(matrix[divineId][exaltedId]).toBe(720);
+      expect(matrix[divineId][chaosId]).toBe(19.75);
+      expect(matrix[exaltedId][divineId]).toBe(0.00132);
     });
   });
 
   describe('findArbitrageOpportunities', () => {
     it('should find the known profitable path: Divine -> Chaos -> Exalted -> Divine', () => {
-      // This is one of the paths that was previously returning 760.31% profit
-      // const divineId = "currency_1749988790557_lv8t05jaf";
-      // const chaosId = "currency_1749988818989_exip1pxn1";
-      // const exaltedId = "currency_1749988803476_9cemxww2b";
-
       // Rates: Divine(19.75) -> Chaos(330) -> Exalted(0.00132) -> Divine
       const rateDC = 19.75;
       const rateCE = 330;
@@ -102,8 +101,8 @@ describe('Arbitrage Calculations', () => {
       console.log('Final amount:', finalAmountNoGold);
       console.log('Profit %:', profitNoGold);
 
-      expect(finalAmountNoGold).toBeCloseTo(8.6031, 4); // Should be ~8.6031
-      expect(profitNoGold).toBeCloseTo(760.31, 2); // Should be ~760.31%
+      expect(finalAmountNoGold).toBeCloseTo(8.6031, 4);
+      expect(profitNoGold).toBeCloseTo(760.31, 2);
 
       // Now with gold costs
       const chaosGoldCost = 160;
@@ -111,9 +110,9 @@ describe('Arbitrage Calculations', () => {
       const divineGoldCost = 800;
 
       // Gold costs for each conversion step (corrected calculation)
-      const goldCostDC = chaosGoldCost * rateDC; // 160 * 19.75 = 3160
-      const goldCostCE = exaltedGoldCost * rateCE; // 120 * 330 = 39600
-      const goldCostED = divineGoldCost * rateED; // 800 * 0.00132 = 1.056
+      const goldCostDC = chaosGoldCost * rateDC;
+      const goldCostCE = exaltedGoldCost * rateCE;
+      const goldCostED = divineGoldCost * rateED;
 
       const totalGoldCost = goldCostDC + goldCostCE + goldCostED;
 
@@ -139,6 +138,8 @@ describe('Arbitrage Calculations', () => {
         console.log(`Opportunity ${index + 1}:`, {
           path: pathNames,
           rates: opp.rates,
+          quantities: opp.quantities,
+          baseAmount: opp.baseAmount,
           profitPercentage: opp.profitPercentage,
           riskScore: opp.riskScore,
           totalGoldCost: opp.totalGoldCost
@@ -203,6 +204,123 @@ describe('Arbitrage Calculations', () => {
 
       // With very small gold costs, we should find opportunities
       expect(opportunities.length).toBeGreaterThan(0);
+    });
+
+    it('should respect precision parameter for quantity calculations', () => {
+      // Test with different precision values
+      const lowPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 10);
+      const mediumPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 100);
+      const highPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 10000);
+
+      console.log('=== Precision Test Results ===');
+      console.log('Low precision (10):');
+      if (lowPrecisionOpportunities.length > 0) {
+        console.log('  quantities:', lowPrecisionOpportunities[0].quantities);
+        console.log('  baseAmount:', lowPrecisionOpportunities[0].baseAmount);
+      }
+
+      console.log('Medium precision (100):');
+      if (mediumPrecisionOpportunities.length > 0) {
+        console.log('  quantities:', mediumPrecisionOpportunities[0].quantities);
+        console.log('  baseAmount:', mediumPrecisionOpportunities[0].baseAmount);
+      }
+
+      console.log('High precision (10000):');
+      if (highPrecisionOpportunities.length > 0) {
+        console.log('  quantities:', highPrecisionOpportunities[0].quantities);
+        console.log('  baseAmount:', highPrecisionOpportunities[0].baseAmount);
+      }
+
+      // All should find opportunities
+      expect(lowPrecisionOpportunities.length).toBeGreaterThan(0);
+      expect(mediumPrecisionOpportunities.length).toBeGreaterThan(0);
+      expect(highPrecisionOpportunities.length).toBeGreaterThan(0);
+
+      // Lower precision should generally result in smaller numbers
+      if (lowPrecisionOpportunities.length > 0 && highPrecisionOpportunities.length > 0) {
+        expect(lowPrecisionOpportunities[0].baseAmount).toBeLessThanOrEqual(highPrecisionOpportunities[0].baseAmount);
+      }
+    });
+
+    it('should filter out opportunities with zero quantities at very low precision', () => {
+      // Test with extremely low precision that might cause zero quantities
+      const veryLowPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 1);
+      const lowPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 5);
+      const mediumPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 100);
+
+      console.log('=== Zero Quantity Filter Test ===');
+      console.log('Very low precision (1) opportunities:', veryLowPrecisionOpportunities.length);
+      veryLowPrecisionOpportunities.forEach((opp, index) => {
+        console.log(`  Opportunity ${index + 1} quantities:`, opp.quantities);
+        console.log(`  Has zero quantities:`, opp.quantities.some(qty => qty === 0));
+      });
+
+      console.log('Low precision (5) opportunities:', lowPrecisionOpportunities.length);
+      lowPrecisionOpportunities.forEach((opp, index) => {
+        console.log(`  Opportunity ${index + 1} quantities:`, opp.quantities);
+        console.log(`  Has zero quantities:`, opp.quantities.some(qty => qty === 0));
+      });
+
+      console.log('Medium precision (100) opportunities:', mediumPrecisionOpportunities.length);
+
+      // All returned opportunities should have non-zero quantities
+      veryLowPrecisionOpportunities.forEach(opp => {
+        expect(opp.quantities.every(qty => qty > 0)).toBe(true);
+      });
+
+      lowPrecisionOpportunities.forEach(opp => {
+        expect(opp.quantities.every(qty => qty > 0)).toBe(true);
+      });
+
+      mediumPrecisionOpportunities.forEach(opp => {
+        expect(opp.quantities.every(qty => qty > 0)).toBe(true);
+      });
+
+      // Higher precision should generally find more or equal opportunities
+      expect(mediumPrecisionOpportunities.length).toBeGreaterThanOrEqual(lowPrecisionOpportunities.length);
+    });
+
+    it('should calculate gold costs based on scaled quantities, not base rates', () => {
+      // Test with different precision values to ensure gold costs scale correctly
+      const lowPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 10);
+      const highPrecisionOpportunities = findArbitrageOpportunities(testCurrencies, testRates, 1000);
+
+      console.log('=== Gold Cost Scaling Test ===');
+
+      if (lowPrecisionOpportunities.length > 0) {
+        const lowOpp = lowPrecisionOpportunities[0];
+        console.log('Low precision (10):');
+        console.log('  quantities:', lowOpp.quantities);
+        console.log('  baseAmount:', lowOpp.baseAmount);
+        console.log('  totalGoldCost:', lowOpp.totalGoldCost);
+      }
+
+      if (highPrecisionOpportunities.length > 0) {
+        const highOpp = highPrecisionOpportunities[0];
+        console.log('High precision (1000):');
+        console.log('  quantities:', highOpp.quantities);
+        console.log('  baseAmount:', highOpp.baseAmount);
+        console.log('  totalGoldCost:', highOpp.totalGoldCost);
+      }
+
+      // Both should have opportunities
+      expect(lowPrecisionOpportunities.length).toBeGreaterThan(0);
+      expect(highPrecisionOpportunities.length).toBeGreaterThan(0);
+
+      if (lowPrecisionOpportunities.length > 0 && highPrecisionOpportunities.length > 0) {
+        const lowOpp = lowPrecisionOpportunities[0];
+        const highOpp = highPrecisionOpportunities[0];
+
+        // Gold cost should scale proportionally with the base amount
+        const expectedRatio = highOpp.baseAmount / lowOpp.baseAmount;
+        const actualRatio = highOpp.totalGoldCost! / lowOpp.totalGoldCost!;
+
+        console.log('Expected ratio (baseAmount):', expectedRatio);
+        console.log('Actual ratio (goldCost):', actualRatio);
+
+        // The ratios should be approximately equal (within 1% tolerance)
+        expect(Math.abs(actualRatio - expectedRatio) / expectedRatio).toBeLessThan(0.01);
+      }
     });
   });
 });

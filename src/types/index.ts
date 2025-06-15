@@ -18,6 +18,8 @@ export interface ArbitrageOpportunity {
   id: string;
   path: string[];
   rates: number[];
+  quantities: number[]; // Amount of each currency in the conversion chain
+  baseAmount: number; // Starting amount of the first currency
   profitPercentage: number;
   riskScore: number;
   minAmount?: number;

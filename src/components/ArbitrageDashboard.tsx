@@ -24,15 +24,99 @@ import { IconDisplay } from '@/components/app/IconDisplay';
 interface ArbitrageDashboardProps {
   currencies: Currency[];
   opportunities: ArbitrageOpportunity[];
+  onPrecisionChange?: (precision: number) => void;
 }
+
+interface SearchInputProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+}
+
+const SearchInput = ({ searchTerm, onSearchChange }: SearchInputProps) => (
+  <div className="relative">
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <Input
+      placeholder="Search currencies..."
+      value={searchTerm}
+      onChange={(e) => onSearchChange(e.target.value)}
+      className="pl-10 w-64"
+    />
+  </div>
+);
+
+interface SortBySelectProps {
+  sortBy: 'profit' | 'risk' | 'confidence';
+  onSortChange: (value: 'profit' | 'risk' | 'confidence') => void;
+}
+
+const SortBySelect = ({ sortBy, onSortChange }: SortBySelectProps) => (
+  <Select value={sortBy} onValueChange={onSortChange}>
+    <SelectTrigger className="w-32">
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="profit">Profit</SelectItem>
+      <SelectItem value="risk">Risk</SelectItem>
+      <SelectItem value="confidence">Confidence</SelectItem>
+    </SelectContent>
+  </Select>
+);
+
+interface RiskFilterSelectProps {
+  filterByRisk: 'all' | 'low' | 'medium' | 'high';
+  onRiskFilterChange: (value: 'all' | 'low' | 'medium' | 'high') => void;
+}
+
+const RiskFilterSelect = ({ filterByRisk, onRiskFilterChange }: RiskFilterSelectProps) => (
+  <Select value={filterByRisk} onValueChange={onRiskFilterChange}>
+    <SelectTrigger className="w-32">
+      <Filter className="h-4 w-4 mr-2" />
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">All Risk</SelectItem>
+      <SelectItem value="low">Low Risk</SelectItem>
+      <SelectItem value="medium">Medium Risk</SelectItem>
+      <SelectItem value="high">High Risk</SelectItem>
+    </SelectContent>
+  </Select>
+);
+
+interface PrecisionInputProps {
+  precision: number;
+  onPrecisionChange: (precision: number) => void;
+}
+
+const PrecisionInput = ({ precision, onPrecisionChange }: PrecisionInputProps) => (
+  <div className="flex items-center space-x-2">
+    <label htmlFor="precision" className="text-sm font-medium text-muted-foreground">
+      Precision:
+    </label>
+    <Input
+      id="precision"
+      type="number"
+      value={precision}
+      onChange={(e) => {
+        const newPrecision = parseInt(e.target.value) || 1000;
+        onPrecisionChange(newPrecision);
+      }}
+      className="w-20"
+      min="1"
+      max="100000"
+      step="1"
+    />
+  </div>
+);
 
 export const ArbitrageDashboard = ({
   currencies,
   opportunities,
+  onPrecisionChange,
 }: ArbitrageDashboardProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'profit' | 'risk' | 'confidence'>('profit');
   const [filterByRisk, setFilterByRisk] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [precision, setPrecision] = useState(1000);
 
   const getCurrencyName = useCallback((id: string) =>
     currencies.find(c => c.id === id)?.name || 'Unknown', [currencies]);
@@ -55,15 +139,18 @@ export const ArbitrageDashboard = ({
 
   const filteredAndSortedOpportunities = useMemo(() => {
     const filtered = opportunities.filter(opp => {
-      const searchMatch = searchTerm === '' || 
-        opp.path.some(currencyId => 
+      const searchMatch = searchTerm === '' ||
+        opp.path.some(currencyId =>
           getCurrencyName(currencyId).toLowerCase().includes(searchTerm.toLowerCase())
         );
-      
+
       const riskLevel = getRiskLevel(opp.riskScore);
       const riskMatch = filterByRisk === 'all' || riskLevel === filterByRisk;
-      
-      return searchMatch && riskMatch;
+
+      // Filter out opportunities with zero quantities (impossible to execute)
+      const hasValidQuantities = opp.quantities && opp.quantities.every(qty => qty > 0);
+
+      return searchMatch && riskMatch && hasValidQuantities;
     });
 
     filtered.sort((a, b) => {
@@ -115,37 +202,25 @@ export const ArbitrageDashboard = ({
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-foreground">Arbitrage Opportunities</h2>
         <div className="flex items-center space-x-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search currencies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
-          <Select value={sortBy} onValueChange={(value: 'profit' | 'risk' | 'confidence') => setSortBy(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="profit">Profit</SelectItem>
-              <SelectItem value="risk">Risk</SelectItem>
-              <SelectItem value="confidence">Confidence</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterByRisk} onValueChange={(value: 'all' | 'low' | 'medium' | 'high') => setFilterByRisk(value)}>
-            <SelectTrigger className="w-32">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Risk</SelectItem>
-              <SelectItem value="low">Low Risk</SelectItem>
-              <SelectItem value="medium">Medium Risk</SelectItem>
-              <SelectItem value="high">High Risk</SelectItem>
-            </SelectContent>
-          </Select>
+          <SearchInput
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
+          <PrecisionInput
+            precision={precision}
+            onPrecisionChange={(newPrecision) => {
+              setPrecision(newPrecision);
+              onPrecisionChange?.(newPrecision);
+            }}
+          />
+          <SortBySelect
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+          <RiskFilterSelect
+            filterByRisk={filterByRisk}
+            onRiskFilterChange={setFilterByRisk}
+          />
         </div>
       </div>
 
@@ -252,24 +327,29 @@ export const ArbitrageDashboard = ({
                   </div>
                 </div>
 
-                {/* Conversion Rates */}
+                {/* Trading Steps */}
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-muted-foreground">CONVERSION RATES</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground">TRADING STEPS</h4>
                   <div className="grid grid-cols-1 gap-2">
                     {opportunity.rates.map((rate, index) => {
                       const fromCurrency = getCurrency(opportunity.path[index]);
                       const toCurrency = getCurrency(opportunity.path[index + 1]);
+                      const fromQuantity = opportunity.quantities[index];
+                      const toQuantity = opportunity.quantities[index + 1];
+
                       return (
                         <div key={index} className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground flex items-center space-x-1">
                             <IconDisplay iconName={fromCurrency?.icon || ''} className="h-8 w-8" />
+                            <span className="font-mono font-semibold">{fromQuantity}</span>
                             <span>{getCurrencyName(opportunity.path[index])}</span>
                             <span>→</span>
                             <IconDisplay iconName={toCurrency?.icon || ''} className="h-8 w-8" />
+                            <span className="font-mono font-semibold">{toQuantity}</span>
                             <span>{getCurrencyName(opportunity.path[index + 1])}</span>
                           </span>
-                          <span className="font-mono font-semibold">
-                            {formatCurrency(rate)}
+                          <span className="text-xs text-muted-foreground">
+                            (Rate: {formatCurrency(rate, 4)})
                           </span>
                         </div>
                       );
@@ -300,7 +380,7 @@ export const ArbitrageDashboard = ({
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Confidence</p>
-                    <p className="text-lg font-semibold text-primary">{confidenceScore}%</p>
+                    <p className="text-lg font-semibold text-primary">{confidenceScore.toFixed(2)}%</p>
                   </div>
                 </div>
               </CardContent>
