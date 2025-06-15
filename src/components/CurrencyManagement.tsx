@@ -21,18 +21,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { IconPicker } from '@/components/app/IconPicker';
+import { getIconComponent } from '@/components/app/iconConstants';
 import {
   Coins,
-  Crown,
-  Diamond,
-  DollarSign,
   Edit2,
-  Euro,
   Plus,
-  Shield,
-  Star,
   Trash2,
-  Zap,
 } from 'lucide-react';
 import { Currency } from '@/types';
 import { toast } from '@/hooks/use-toast';
@@ -43,17 +38,6 @@ interface CurrencyManagementProps {
   onUpdateCurrency: (id: string, updates: Partial<Currency>) => void;
   onDeleteCurrency: (id: string) => void;
 }
-
-const PRESET_ICONS = [
-  { name: 'DollarSign', icon: DollarSign },
-  { name: 'Euro', icon: Euro },
-  { name: 'Coins', icon: Coins },
-  { name: 'Star', icon: Star },
-  { name: 'Zap', icon: Zap },
-  { name: 'Diamond', icon: Diamond },
-  { name: 'Crown', icon: Crown },
-  { name: 'Shield', icon: Shield },
-];
 
 interface CurrencyFormData {
   name: string;
@@ -153,11 +137,6 @@ export const CurrencyManagement = ({
     });
   };
 
-  const getIconComponent = (iconName: string) => {
-    const presetIcon = PRESET_ICONS.find(icon => icon.name === iconName);
-    return presetIcon?.icon || DollarSign;
-  };
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -187,22 +166,10 @@ export const CurrencyManagement = ({
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label>Select Icon</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {PRESET_ICONS.map(({ name, icon: Icon }) => (
-                    <Button
-                      key={name}
-                      type="button"
-                      variant={formData.selectedIcon === name ? 'default' : 'outline'}
-                      className="h-12 w-12 p-0"
-                      onClick={() => setFormData({ ...formData, selectedIcon: name })}
-                    >
-                      <Icon className="h-6 w-6" />
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <IconPicker
+                selectedIcon={formData.selectedIcon}
+                onIconSelect={(iconName) => setFormData({ ...formData, selectedIcon: iconName })}
+              />
 
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
