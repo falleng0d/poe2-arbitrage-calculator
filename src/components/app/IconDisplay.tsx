@@ -23,18 +23,10 @@ export const IconDisplay: React.FC<IconDisplayProps> = ({
       alt={displayAlt}
       className={`object-contain ${className}`}
       onError={(e) => {
-        // Fallback to default icon if the specific icon fails to load
         if (e.currentTarget.src !== fallbackIcon) {
           e.currentTarget.src = fallbackIcon;
         }
       }}
     />
-  );
-};
-
-// Utility function to get icon component by name (replacement for the old Lucide-based function)
-export const getIconComponent = (iconName: string) => {
-  return ({ className = 'h-6 w-6', alt }: { className?: string; alt?: string }) => (
-    <IconDisplay iconName={iconName} className={className} alt={alt} />
   );
 };

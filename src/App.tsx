@@ -62,6 +62,7 @@ function App() {
       currency.id === id ? { ...currency, ...updates } : currency
     );
     setState(prev => ({ ...prev, currencies: updatedCurrencies }));
+    console.log('Updated currencies:', updatedCurrencies);
     storage.saveCurrencies(updatedCurrencies);
   };
 

@@ -168,7 +168,15 @@ export const CurrencyManagement = ({
               
               <IconPicker
                 selectedIcon={formData.selectedIcon}
-                onIconSelect={(iconName) => setFormData({ ...formData, selectedIcon: iconName })}
+                onIconSelect={(iconName) => {
+                  // Auto-populate name if it's empty or matches the current icon name
+                  const shouldUpdateName = !formData.name.trim() || formData.name === formData.selectedIcon;
+                  setFormData({
+                    ...formData,
+                    selectedIcon: iconName,
+                    name: shouldUpdateName ? iconName : formData.name
+                  });
+                }}
               />
 
               <div className="flex justify-end space-x-2">
@@ -191,8 +199,8 @@ export const CurrencyManagement = ({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <IconDisplay iconName={currency.icon} className="h-6 w-6" />
+                    <div className="p-1 bg-primary/10 rounded-lg">
+                      <IconDisplay iconName={currency.icon} className="h-8 w-8" />
                     </div>
                     <span className="text-lg font-semibold">{currency.name}</span>
                   </div>

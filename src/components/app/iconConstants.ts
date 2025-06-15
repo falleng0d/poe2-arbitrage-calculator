@@ -9,7 +9,18 @@ export interface IconOption {
 // 2. Add the filename to the AVAILABLE_ICON_FILES array below
 // 3. The icon will automatically appear in the IconPicker
 const AVAILABLE_ICON_FILES = [
-  'AnnullOrb.png',
+  'ExaltedOrb.png',
+  'DivineOrb.png',
+  'ChaosOrb.png',
+  'AnnulmentOrb.png',
+  'VaalOrb.png',
+  'AlchemyOrb.png',
+  'RegalOrb.png',
+  'AugmentationOrb.png',
+  'AncientOrb.png',
+  'RegalShard.png',
+  'AncientShard.png',
+  'TransmutationShard.png',
   'AttributeEssence.png',
   'AzmeriSocketableOwl.png',
   'BarterRefreshCurrency.png',
@@ -20,7 +31,6 @@ const AVAILABLE_ICON_FILES = [
   'BreachCatalystCold.png',
   'BreachCatalystDefences.png',
   'BreachCatalystFire.png',
-  'BreachCatalystFire_1.png',
   'BreachCatalystLife.png',
   'BreachCatalystLightning.png',
   'BreachCatalystMana.png',
@@ -31,30 +41,17 @@ const AVAILABLE_ICON_FILES = [
   'ColdRune.png',
   'CurrencyAddEquipmentSocket.png',
   'CurrencyAddEquipmentSocketShard.png',
-  'CurrencyAddModToMagic.png',
-  'CurrencyAddModToRare.png',
   'CurrencyArmourQuality.png',
   'CurrencyDuplicate.png',
-  'CurrencyDuplicate_1.png',
   'CurrencyFlaskQuality.png',
   'CurrencyGemQuality.png',
   'CurrencyIdentification.png',
-  'CurrencyModValues.png',
-  'CurrencyRerollRare.png',
   'CurrencyRerollSocketNumbers01.png',
   'CurrencyRerollSocketNumbers02.png',
   'CurrencyRerollSocketNumbers03.png',
-  'CurrencyUpgradeMagicToRare.png',
-  'CurrencyUpgradeMagicToRareShard.png',
-  'CurrencyUpgradeToMagicShard.png',
-  'CurrencyUpgradeToRare.png',
-  'CurrencyUpgradeToUnique.png',
-  'CurrencyUpgradeToUniqueShard.png',
-  'CurrencyVaal.png',
   'CurrencyWeaponMagicQuality.png',
   'CurrencyWeaponQuality.png',
   'DistilledDespair.png',
-  'DistilledDespair_1.png',
   'DistilledDisgust.png',
   'DistilledEnvy.png',
   'DistilledFear.png',
@@ -71,35 +68,47 @@ const AVAILABLE_ICON_FILES = [
   'PinnacleKey1.png',
   'PrecursorTabletGeneric.png',
   'TwilightOrderReliquaryKeyWorld.png',
-  'VoodooOmens1Blue.png',
-  'VoodooOmens1Dark.png',
-  'VoodooOmens1Green.png',
-  'VoodooOmens1Purple.png',
-  'VoodooOmens1Red.png',
-  'VoodooOmens1Red_1.png',
-  'VoodooOmens1Yellow.png',
-  'VoodooOmens2Blue.png',
-  'VoodooOmens2Dark.png',
-  'VoodooOmens2Green.png',
-  'VoodooOmens2Purple.png',
-  'VoodooOmens2Red.png',
-  'VoodooOmens2Yellow.png',
-  'VoodooOmens3Blue.png',
-  'VoodooOmens3Dark.png',
-  'VoodooOmens3Purple.png',
-  'VoodooOmens3Red.png',
-  'VoodooOmens3Yellow.png',
-  'VoodooOmens4Blue.png',
-  'VoodooOmens4Dark.png',
-  'VoodooOmens4Green.png',
-  'VoodooOmens4Purple.png',
+  'OmenOfWhittling.png',
+  'OmenOftheHunt.png',
+  'OmenOfSinistralExaltation.png',
+  'OmenOfSinistralErasure.png',
+  'OmenOfSinistralCoronation.png',
+  'OmenOfSinistralAnnulment.png',
+  'OmenOfSinistralAlchemy.png',
+  'OmenOfSecretCompartments.png',
+  'OmenOfResurgence.png',
+  'OmenOfReinforcements.png',
+  'OmenOfRefreshment.png',
+  'OmenOfGreaterExaltation.png',
+  'OmenOfGreaterAnnulment.png',
+  'OmenOfDextralExaltation.png',
+  'OmenOfDextralErasure.png',
+  'OmenOfDextralCoronation.png',
+  'OmenOfDextralAnnulment.png',
+  'OmenOfDextralAlchemy.png',
+  'OmenOfCorruption.png',
+  'OmenOfAnsweredPrayers.png',
+  'OmenOfAmelioration.png',
 ];
+
+function parseIconName(filename: string) {
+  // Remove file extension
+  let name = filename.replace(/\.(png|jpg|jpeg|svg|webp)$/i, '');
+  // Add spaces before capital letters
+  name = name.replace(/([A-Z])/g, ' $1').trim();
+
+  return name;
+}
+
+function getIconFilename(iconName: string) {
+  return AVAILABLE_ICON_FILES.find(file => parseIconName(file) === iconName);
+}
 
 // Function to load available icons from public/icons directory
 export const loadAvailableIcons = async (): Promise<IconOption[]> => {
   try {
     return AVAILABLE_ICON_FILES.map(file => ({
-      name: file.replace(/\.(png|jpg|jpeg|svg|webp)$/i, ''), // Remove extension for display name
+      name: parseIconName(file),
       path: `/icons/${file}`,
     }));
   } catch (error) {
@@ -116,7 +125,8 @@ export const getIconPath = (iconName: string): string => {
   }
 
   // Otherwise, assume it's a PNG file
-  return `/icons/${iconName}.png`;
+  console.log(`getIconPath: ${iconName} => /icons/${getIconFilename(iconName)}`);
+  return `/icons/${getIconFilename(iconName)}`;
 };
 
 // Default icon fallback
