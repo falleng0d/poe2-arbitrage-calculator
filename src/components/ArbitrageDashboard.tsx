@@ -83,6 +83,38 @@ const RiskFilterSelect = ({ filterByRisk, onRiskFilterChange }: RiskFilterSelect
   </Select>
 );
 
+interface BaseCurrencyFilterSelectProps {
+  currencies: Currency[];
+  filterByBaseCurrency: string;
+  onBaseCurrencyFilterChange: (value: string) => void;
+}
+
+const BaseCurrencyFilterSelect = ({ currencies, filterByBaseCurrency, onBaseCurrencyFilterChange }: BaseCurrencyFilterSelectProps) => {
+  return (
+    <Select value={filterByBaseCurrency} onValueChange={onBaseCurrencyFilterChange}>
+      <SelectTrigger className="w-40">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4" />
+            <span>All Currencies</span>
+          </div>
+        </SelectItem>
+        {currencies.map((currency) => (
+          <SelectItem key={currency.id} value={currency.id}>
+            <div className="flex items-center space-x-2">
+              <IconDisplay iconName={currency.icon} className="h-4 w-4" />
+              <span>{currency.name}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
+
 interface PrecisionInputProps {
   precision: number;
   onPrecisionChange: (precision: number) => void;
@@ -118,6 +150,7 @@ export const ArbitrageDashboard = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'profit' | 'risk' | 'confidence'>('profit');
   const [filterByRisk, setFilterByRisk] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [filterByBaseCurrency, setFilterByBaseCurrency] = useState<string>('all');
   const [precision, setPrecision] = useState(1000);
 
   const getCurrencyName = useCallback((id: string) =>
@@ -155,10 +188,14 @@ export const ArbitrageDashboard = ({
       const riskLevel = getRiskLevel(opp.riskScore);
       const riskMatch = filterByRisk === 'all' || riskLevel === filterByRisk;
 
+      // Filter by starting base currency (first currency in the path)
+      const baseCurrencyMatch = filterByBaseCurrency === 'all' ||
+        (opp.path.length > 0 && opp.path[0] === filterByBaseCurrency);
+
       // Filter out opportunities with zero quantities (impossible to execute)
       const hasValidQuantities = opp.quantities && opp.quantities.every(qty => qty > 0);
 
-      return searchMatch && riskMatch && hasValidQuantities;
+      return searchMatch && riskMatch && baseCurrencyMatch && hasValidQuantities;
     });
 
     filtered.sort((a, b) => {
@@ -175,7 +212,7 @@ export const ArbitrageDashboard = ({
     });
 
     return filtered;
-  }, [opportunities, searchTerm, filterByRisk, getCurrencyName, sortBy]);
+  }, [opportunities, searchTerm, filterByRisk, filterByBaseCurrency, getCurrencyName, sortBy]);
 
   const stats = useMemo(() => {
     const profitable = opportunities.filter(opp => opp.profitPercentage > 0).length;
@@ -228,6 +265,11 @@ export const ArbitrageDashboard = ({
           <RiskFilterSelect
             filterByRisk={filterByRisk}
             onRiskFilterChange={setFilterByRisk}
+          />
+          <BaseCurrencyFilterSelect
+            currencies={currencies}
+            filterByBaseCurrency={filterByBaseCurrency}
+            onBaseCurrencyFilterChange={setFilterByBaseCurrency}
           />
         </div>
       </div>
