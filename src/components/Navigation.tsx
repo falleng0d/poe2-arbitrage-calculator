@@ -1,16 +1,14 @@
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Coins, Settings, TrendingUp } from 'lucide-react';
 
-interface NavigationProps {
-  activeTab: 'currencies' | 'rates' | 'opportunities';
-  onTabChange: (tab: 'currencies' | 'rates' | 'opportunities') => void;
-}
+export const Navigation = () => {
+  const location = useLocation();
 
-export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const tabs = [
-    { id: 'opportunities' as const, label: 'Opportunities', icon: TrendingUp },
-    { id: 'rates' as const, label: 'Rates', icon: Settings },
-    { id: 'currencies' as const, label: 'Currencies', icon: Coins },
+    { id: 'opportunities', path: '/', label: 'Opportunities', icon: TrendingUp },
+    { id: 'rates', path: '/rates', label: 'Rates', icon: Settings },
+    { id: 'currencies', path: '/currencies', label: 'Currencies', icon: Coins },
   ];
 
   return (
@@ -25,20 +23,22 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
           <div className="flex space-x-1">
             {tabs.map(tab => {
               const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+              const isActive = location.pathname === tab.path;
               return (
                 <Button
                   key={tab.id}
                   variant={isActive ? 'default' : 'ghost'}
-                  onClick={() => onTabChange(tab.id)}
+                  asChild
                   className={`flex items-center space-x-2 ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                    isActive
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                       : 'bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
+                  <Link to={tab.path}>
+                    <Icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </Link>
                 </Button>
               );
             })}

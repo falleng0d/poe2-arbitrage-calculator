@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { CurrencyManagement } from '@/components/CurrencyManagement';
 import { RateConfiguration } from '@/components/RateConfiguration';
@@ -14,7 +15,6 @@ function App() {
     currencies: [],
     rates: [],
     opportunities: [],
-    activeTab: 'opportunities',
   });
   const [precision, setPrecision] = useState(1000);
 
@@ -93,51 +93,45 @@ function App() {
     storage.saveRates(newRates);
   };
 
-  const handleTabChange = (tab: 'currencies' | 'rates' | 'opportunities') => {
-    setState(prev => ({ ...prev, activeTab: tab }));
-  };
-
-  const handlePrecisionChange = (newPrecision: number) => {
-    setPrecision(newPrecision);
-  };
-
-  const renderActiveTab = () => {
-    switch (state.activeTab) {
-      case 'currencies':
-        return (
-          <CurrencyManagement
-            currencies={state.currencies}
-            onAddCurrency={handleAddCurrency}
-            onUpdateCurrency={handleUpdateCurrency}
-            onDeleteCurrency={handleDeleteCurrency}
-          />
-        );
-      case 'rates':
-        return (
-          <RateConfiguration
-            currencies={state.currencies}
-            rates={state.rates}
-            onUpdateRates={handleUpdateRates}
-          />
-        );
-      case 'opportunities':
-        return (
-          <ArbitrageDashboard
-            currencies={state.currencies}
-            opportunities={state.opportunities}
-            onPrecisionChange={handlePrecisionChange}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  const handlePrecisionChange = (newPrecision: number) => setPrecision(newPrecision);
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation activeTab={state.activeTab} onTabChange={handleTabChange} />
+      <Navigation />
       <main className="pb-8">
-        {renderActiveTab()}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ArbitrageDashboard
+                currencies={state.currencies}
+                opportunities={state.opportunities}
+                onPrecisionChange={handlePrecisionChange}
+              />
+            }
+          />
+          <Route
+            path="/rates"
+            element={
+              <RateConfiguration
+                currencies={state.currencies}
+                rates={state.rates}
+                onUpdateRates={handleUpdateRates}
+              />
+            }
+          />
+          <Route
+            path="/currencies"
+            element={
+              <CurrencyManagement
+                currencies={state.currencies}
+                onAddCurrency={handleAddCurrency}
+                onUpdateCurrency={handleUpdateCurrency}
+                onDeleteCurrency={handleDeleteCurrency}
+              />
+            }
+          />
+        </Routes>
       </main>
       <Toaster />
     </div>

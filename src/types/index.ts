@@ -39,5 +39,4 @@ export interface AppState {
   currencies: Currency[];
   rates: ConversionRate[];
   opportunities: ArbitrageOpportunity[];
-  activeTab: 'currencies' | 'rates' | 'opportunities';
 }
