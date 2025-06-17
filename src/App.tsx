@@ -14,7 +14,7 @@ function App() {
     currencies: [],
     rates: [],
     opportunities: [],
-    activeTab: 'currencies',
+    activeTab: 'opportunities',
   });
   const [precision, setPrecision] = useState(1000);
 

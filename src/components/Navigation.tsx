@@ -8,9 +8,9 @@ interface NavigationProps {
 
 export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const tabs = [
-    { id: 'currencies' as const, label: 'Currencies', icon: Coins },
-    { id: 'rates' as const, label: 'Rates', icon: Settings },
     { id: 'opportunities' as const, label: 'Opportunities', icon: TrendingUp },
+    { id: 'rates' as const, label: 'Rates', icon: Settings },
+    { id: 'currencies' as const, label: 'Currencies', icon: Coins },
   ];
 
   return (
