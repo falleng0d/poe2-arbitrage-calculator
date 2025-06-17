@@ -13,8 +13,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-  },
 });
