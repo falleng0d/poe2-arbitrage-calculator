@@ -17,6 +17,8 @@ interface RateConfigurationProps {
 interface RateInput {
   fromCurrencyId: string;
   toCurrencyId: string;
+  fromQuantity: string;
+  toQuantity: string;
   rate: string;
   isValid: boolean;
 }
@@ -32,17 +34,19 @@ export const RateConfiguration = ({
   useEffect(() => {
     // Initialize rate inputs from existing rates
     const inputs: RateInput[] = [];
-    
+
     currencies.forEach(fromCurrency => {
       currencies.forEach(toCurrency => {
         if (fromCurrency.id !== toCurrency.id) {
           const existingRate = rates.find(
             rate => rate.fromCurrencyId === fromCurrency.id && rate.toCurrencyId === toCurrency.id
           );
-          
+
           inputs.push({
             fromCurrencyId: fromCurrency.id,
             toCurrencyId: toCurrency.id,
+            fromQuantity: existingRate?.fromQuantity?.toString() || '',
+            toQuantity: existingRate?.toQuantity?.toString() || '',
             rate: existingRate ? existingRate.rate.toString() : '',
             isValid: !!existingRate,
           });
@@ -53,26 +57,46 @@ export const RateConfiguration = ({
     setHasChanges(false);
   }, [currencies, rates]);
 
-  const handleRateChange = (fromCurrencyId: string, toCurrencyId: string, value: string) => {
-    const numericValue = parseFloat(value);
-    const isValid = !isNaN(numericValue) && numericValue > 0;
-    
-    setRateInputs(prev => 
-      prev.map(input => 
-        input.fromCurrencyId === fromCurrencyId && input.toCurrencyId === toCurrencyId
-          ? { ...input, rate: value, isValid }
-          : input
-      )
+  const handleQuantityChange = (
+    fromCurrencyId: string,
+    toCurrencyId: string,
+    field: 'fromQuantity' | 'toQuantity',
+    value: string
+  ) => {
+    setRateInputs(prev =>
+      prev.map(input => {
+        if (input.fromCurrencyId === fromCurrencyId && input.toCurrencyId === toCurrencyId) {
+          const updatedInput = { ...input, [field]: value };
+
+          const fromQty = parseFloat(field === 'fromQuantity' ? value : input.fromQuantity);
+          const toQty = parseFloat(field === 'toQuantity' ? value : input.toQuantity);
+
+          const isFromValid = !isNaN(fromQty) && fromQty > 0;
+          const isToValid = !isNaN(toQty) && toQty > 0;
+          const isValid = isFromValid && isToValid;
+
+          const rate = isValid ? (toQty / fromQty).toString() : '';
+
+          return {
+            ...updatedInput,
+            rate,
+            isValid,
+          };
+        }
+        return input;
+      })
     );
     setHasChanges(true);
   };
 
   const handleSave = () => {
     const validRates = rateInputs
-      .filter(input => input.isValid && input.rate.trim() !== '')
+      .filter(input => input.isValid && input.fromQuantity.trim() !== '' && input.toQuantity.trim() !== '')
       .map(input => ({
         fromCurrencyId: input.fromCurrencyId,
         toCurrencyId: input.toCurrencyId,
+        fromQuantity: parseFloat(input.fromQuantity),
+        toQuantity: parseFloat(input.toQuantity),
         rate: parseFloat(input.rate),
         lastUpdated: new Date(),
       }));
@@ -87,24 +111,26 @@ export const RateConfiguration = ({
 
   const handleReset = () => {
     const inputs: RateInput[] = [];
-    
+
     currencies.forEach(fromCurrency => {
       currencies.forEach(toCurrency => {
         if (fromCurrency.id !== toCurrency.id) {
           const existingRate = rates.find(
             rate => rate.fromCurrencyId === fromCurrency.id && rate.toCurrencyId === toCurrency.id
           );
-          
+
           inputs.push({
             fromCurrencyId: fromCurrency.id,
             toCurrencyId: toCurrency.id,
+            fromQuantity: existingRate?.fromQuantity?.toString() || '',
+            toQuantity: existingRate?.toQuantity?.toString() || '',
             rate: existingRate ? existingRate.rate.toString() : '',
             isValid: !!existingRate,
           });
         }
       });
     });
-    
+
     setRateInputs(inputs);
     setHasChanges(false);
   };
@@ -164,28 +190,63 @@ export const RateConfiguration = ({
                     );
                     
                     return (
-                      <div key={toCurrency.id} className="space-y-2">
-                        <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}`} className="flex items-center space-x-2">
+                      <div key={toCurrency.id} className="space-y-3 p-4 border rounded-lg">
+                        <Label className="flex items-center space-x-2 font-medium">
                           <IconDisplay iconName={toCurrency.icon} className="h-6 w-6" />
                           <span>To {toCurrency.name}</span>
                         </Label>
-                        <Input
-                          id={`${fromCurrency.id}-${toCurrency.id}`}
-                          type="number"
-                          step="any"
-                          min="0"
-                          placeholder="0.0000"
-                          value={rateInput?.rate || ''}
-                          onChange={(e) => handleRateChange(fromCurrency.id, toCurrency.id, e.target.value)}
-                          className={
-                            `${rateInput?.rate && !rateInput.isValid
-                              ? 'border-destructive focus:border-destructive'
-                              : ''}`
-                          }
-                        />
-                        {rateInput?.rate && !rateInput.isValid && (
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}-from`} className="text-sm text-muted-foreground">
+                              From ({fromCurrency.name})
+                            </Label>
+                            <Input
+                              id={`${fromCurrency.id}-${toCurrency.id}-from`}
+                              type="number"
+                              step="any"
+                              min="0"
+                              placeholder="1"
+                              value={rateInput?.fromQuantity || ''}
+                              onChange={(e) => handleQuantityChange(fromCurrency.id, toCurrency.id, 'fromQuantity', e.target.value)}
+                              className={
+                                `${rateInput?.fromQuantity && !rateInput.isValid
+                                  ? 'border-destructive focus:border-destructive'
+                                  : ''}`
+                              }
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}-to`} className="text-sm text-muted-foreground">
+                              To ({toCurrency.name})
+                            </Label>
+                            <Input
+                              id={`${fromCurrency.id}-${toCurrency.id}-to`}
+                              type="number"
+                              step="any"
+                              min="0"
+                              placeholder="1"
+                              value={rateInput?.toQuantity || ''}
+                              onChange={(e) => handleQuantityChange(fromCurrency.id, toCurrency.id, 'toQuantity', e.target.value)}
+                              className={
+                                `${rateInput?.toQuantity && !rateInput.isValid
+                                  ? 'border-destructive focus:border-destructive'
+                                  : ''}`
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {rateInput?.rate && rateInput.isValid && (
+                          <div className="text-sm text-muted-foreground">
+                            Rate: {parseFloat(rateInput.rate).toFixed(6)}
+                          </div>
+                        )}
+
+                        {(rateInput?.fromQuantity || rateInput?.toQuantity) && !rateInput.isValid && (
                           <p className="text-sm text-destructive">
-                            Please enter a valid positive number
+                            Please enter valid positive numbers for both quantities
                           </p>
                         )}
                       </div>
@@ -202,7 +263,7 @@ export const RateConfiguration = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-primary">
-                {rateInputs.filter(input => input.isValid && input.rate.trim() !== '').length}
+                {rateInputs.filter(input => input.isValid && input.fromQuantity.trim() !== '' && input.toQuantity.trim() !== '').length}
               </p>
               <p className="text-sm text-muted-foreground">Valid Rates</p>
             </div>

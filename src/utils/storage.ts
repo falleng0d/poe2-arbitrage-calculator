@@ -32,11 +32,13 @@ export const storage = {
   loadRates: (): ConversionRate[] => {
     const stored = localStorage.getItem(STORAGE_KEYS.RATES);
     if (!stored) return [];
-    
+
     try {
       const parsed = JSON.parse(stored);
       return parsed.map((rate: ConversionRate) => ({
         ...rate,
+        fromQuantity: rate.fromQuantity ?? 1,
+        toQuantity: rate.toQuantity ?? (rate.rate ?? 1),
         lastUpdated: new Date(rate.lastUpdated),
       }));
     } catch {

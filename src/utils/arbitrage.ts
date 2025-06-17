@@ -1,20 +1,5 @@
 import { ArbitrageOpportunity, ConversionRate, Currency, RateMatrix } from '@/types';
 
-// Helper function to calculate the greatest common divisor
-const gcd = (a: number, b: number): number => {
-  return b === 0 ? a : gcd(b, a % b);
-};
-
-// Helper function to calculate the least common multiple
-const lcm = (a: number, b: number): number => {
-  return Math.abs(a * b) / gcd(a, b);
-};
-
-// Helper function to find the LCM of an array of numbers
-const lcmArray = (numbers: number[]): number => {
-  return numbers.reduce((acc, num) => lcm(acc, num), 1);
-};
-
 // Convert decimal rates to integer quantities
 const calculateQuantities = (rates: number[], precision: number = 1000): { quantities: number[], baseAmount: number } => {
   // Start with base amount of 1 and calculate the chain

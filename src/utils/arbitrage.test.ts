@@ -40,36 +40,48 @@ describe('Arbitrage Calculations', () => {
       fromCurrencyId: divineId,
       toCurrencyId: exaltedId,
       rate: 720,
+      fromQuantity: 1,
+      toQuantity: 720,
       lastUpdated: new Date()
     },
     {
       fromCurrencyId: divineId,
       toCurrencyId: chaosId,
       rate: 19.75,
+      fromQuantity: 1,
+      toQuantity: 19.75,
       lastUpdated: new Date()
     },
     {
       fromCurrencyId: exaltedId,
       toCurrencyId: divineId,
       rate: 0.00132,
+      fromQuantity: 1,
+      toQuantity: 0.00132,
       lastUpdated: new Date()
     },
     {
       fromCurrencyId: exaltedId,
       toCurrencyId: chaosId,
       rate: 0.02564,
+      fromQuantity: 1,
+      toQuantity: 0.02564,
       lastUpdated: new Date()
     },
     {
       fromCurrencyId: chaosId,
       toCurrencyId: divineId,
       rate: 0.04926,
+      fromQuantity: 1,
+      toQuantity: 0.04926,
       lastUpdated: new Date()
     },
     {
       fromCurrencyId: chaosId,
       toCurrencyId: exaltedId,
       rate: 330,
+      fromQuantity: 1,
+      toQuantity: 330,
       lastUpdated: new Date()
     }
   ];

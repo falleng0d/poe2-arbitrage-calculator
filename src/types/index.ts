@@ -11,6 +11,8 @@ export interface ConversionRate {
   fromCurrencyId: string;
   toCurrencyId: string;
   rate: number;
+  fromQuantity: number;
+  toQuantity: number;
   lastUpdated: Date;
 }
 
