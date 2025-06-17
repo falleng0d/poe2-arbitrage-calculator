@@ -17,13 +17,14 @@ import {
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
-import { ArbitrageOpportunity, Currency } from '@/types';
+import { ArbitrageOpportunity, Currency, ConversionRate } from '@/types';
 import { formatCurrency, getConfidenceScore } from '@/utils/arbitrage';
 import { IconDisplay } from '@/components/app/IconDisplay';
 
 interface ArbitrageDashboardProps {
   currencies: Currency[];
   opportunities: ArbitrageOpportunity[];
+  rates: ConversionRate[];
   onPrecisionChange?: (precision: number) => void;
 }
 
@@ -111,6 +112,7 @@ const PrecisionInput = ({ precision, onPrecisionChange }: PrecisionInputProps) =
 export const ArbitrageDashboard = ({
   currencies,
   opportunities,
+  rates,
   onPrecisionChange,
 }: ArbitrageDashboardProps) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,6 +124,12 @@ export const ArbitrageDashboard = ({
     currencies.find(c => c.id === id)?.name || 'Unknown', [currencies]);
 
   const getCurrency = (id: string) => currencies.find(c => c.id === id);
+
+  const getOriginalRate = useCallback((fromCurrencyId: string, toCurrencyId: string) => {
+    return rates.find(rate =>
+      rate.fromCurrencyId === fromCurrencyId && rate.toCurrencyId === toCurrencyId
+    );
+  }, [rates]);
 
   const getRiskLevel = (riskScore: number): 'low' | 'medium' | 'high' => {
     if (riskScore <= 3) return 'low';
@@ -338,6 +346,11 @@ export const ArbitrageDashboard = ({
                       const fromQuantity = opportunity.quantities[index];
                       const toQuantity = opportunity.quantities[index + 1];
 
+                      const originalRate = getOriginalRate(opportunity.path[index], opportunity.path[index + 1]);
+                      const rateDisplay = originalRate
+                        ? `${originalRate.fromQuantity}:${originalRate.toQuantity}`
+                        : formatCurrency(rate, 4);
+
                       return (
                         <div key={index} className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground flex items-center space-x-1">
@@ -350,7 +363,7 @@ export const ArbitrageDashboard = ({
                             <span>{getCurrencyName(opportunity.path[index + 1])}</span>
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            (Rate: {formatCurrency(rate, 4)})
+                            {rateDisplay}
                           </span>
                         </div>
                       );

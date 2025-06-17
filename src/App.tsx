@@ -106,6 +106,7 @@ function App() {
               <ArbitrageDashboard
                 currencies={state.currencies}
                 opportunities={state.opportunities}
+                rates={state.rates}
                 onPrecisionChange={handlePrecisionChange}
               />
             }
