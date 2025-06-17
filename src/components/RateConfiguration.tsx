@@ -7,6 +7,7 @@ import { RotateCcw, Save, TrendingUp } from 'lucide-react';
 import { ConversionRate, Currency } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { IconDisplay } from '@/components/app/IconDisplay';
+import { MultiSelectCombobox, MultiSelectOption } from '@/components/ui/multi-select-combobox';
 
 interface RateConfigurationProps {
   currencies: Currency[];
@@ -30,9 +31,26 @@ export const RateConfiguration = ({
 }: RateConfigurationProps) => {
   const [rateInputs, setRateInputs] = useState<RateInput[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
+
+  const currencyOptions: MultiSelectOption[] = currencies.map(currency => ({
+    value: currency.id,
+    label: currency.name,
+    icon: <IconDisplay iconName={currency.icon} className="h-5 w-5" />,
+  }));
+
+  const filteredRateInputs = selectedCurrencies.length === 0
+    ? rateInputs
+    : rateInputs.filter(input =>
+        selectedCurrencies.includes(input.fromCurrencyId) ||
+        selectedCurrencies.includes(input.toCurrencyId)
+      );
+
+  const filteredCurrencies = selectedCurrencies.length === 0
+    ? currencies
+    : currencies.filter(currency => selectedCurrencies.includes(currency.id));
 
   useEffect(() => {
-    // Initialize rate inputs from existing rates
     const inputs: RateInput[] = [];
 
     currencies.forEach(fromCurrency => {
@@ -155,7 +173,18 @@ export const RateConfiguration = ({
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-foreground">Rate Configuration</h2>
+
         <div className="flex space-x-2">
+          {/* Currency Filter */}
+          <MultiSelectCombobox
+            options={currencyOptions}
+            selected={selectedCurrencies}
+            onSelectionChange={setSelectedCurrencies}
+            placeholder="Select currencies to filter..."
+            searchPlaceholder="Search currencies..."
+            emptyText="No currencies found."
+            className="max-w-md"
+          />
           {hasChanges && (
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
@@ -170,7 +199,7 @@ export const RateConfiguration = ({
       </div>
 
       <div className="grid gap-6">
-        {currencies.map(fromCurrency => (
+        {filteredCurrencies.map(fromCurrency => (
           <Card key={fromCurrency.id}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-3">
@@ -182,7 +211,7 @@ export const RateConfiguration = ({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {currencies
+                {filteredCurrencies
                   .filter(toCurrency => toCurrency.id !== fromCurrency.id)
                   .map(toCurrency => {
                     const rateInput = rateInputs.find(
@@ -197,25 +226,6 @@ export const RateConfiguration = ({
                         </Label>
 
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}-from`} className="text-sm text-muted-foreground">
-                              From ({fromCurrency.name})
-                            </Label>
-                            <Input
-                              id={`${fromCurrency.id}-${toCurrency.id}-from`}
-                              type="number"
-                              step="any"
-                              min="0"
-                              placeholder="1"
-                              value={rateInput?.fromQuantity || ''}
-                              onChange={(e) => handleQuantityChange(fromCurrency.id, toCurrency.id, 'fromQuantity', e.target.value)}
-                              className={
-                                `${rateInput?.fromQuantity && !rateInput.isValid
-                                  ? 'border-destructive focus:border-destructive'
-                                  : ''}`
-                              }
-                            />
-                          </div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}-to`} className="text-sm text-muted-foreground">
@@ -226,11 +236,29 @@ export const RateConfiguration = ({
                               type="number"
                               step="any"
                               min="0"
-                              placeholder="1"
                               value={rateInput?.toQuantity || ''}
                               onChange={(e) => handleQuantityChange(fromCurrency.id, toCurrency.id, 'toQuantity', e.target.value)}
                               className={
                                 `${rateInput?.toQuantity && !rateInput.isValid
+                                  ? 'border-destructive focus:border-destructive'
+                                  : ''}`
+                              }
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor={`${fromCurrency.id}-${toCurrency.id}-from`} className="text-sm text-muted-foreground">
+                              From ({fromCurrency.name})
+                            </Label>
+                            <Input
+                              id={`${fromCurrency.id}-${toCurrency.id}-from`}
+                              type="number"
+                              step="any"
+                              min="0"
+                              value={rateInput?.fromQuantity || ''}
+                              onChange={(e) => handleQuantityChange(fromCurrency.id, toCurrency.id, 'fromQuantity', e.target.value)}
+                              className={
+                                `${rateInput?.fromQuantity && !rateInput.isValid
                                   ? 'border-destructive focus:border-destructive'
                                   : ''}`
                               }
@@ -263,15 +291,15 @@ export const RateConfiguration = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-primary">
-                {rateInputs.filter(input => input.isValid && input.fromQuantity.trim() !== '' && input.toQuantity.trim() !== '').length}
+                {filteredRateInputs.filter(input => input.isValid && input.fromQuantity.trim() !== '' && input.toQuantity.trim() !== '').length}
               </p>
-              <p className="text-sm text-muted-foreground">Valid Rates</p>
+              <p className="text-sm text-muted-foreground">Valid Rates {selectedCurrencies.length > 0 ? '(Filtered)' : ''}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-primary">
-                {currencies.length * (currencies.length - 1)}
+                {filteredCurrencies.length * (filteredCurrencies.length - 1)}
               </p>
-              <p className="text-sm text-muted-foreground">Total Possible Rates</p>
+              <p className="text-sm text-muted-foreground">Total Possible Rates {selectedCurrencies.length > 0 ? '(Filtered)' : ''}</p>
             </div>
           </div>
         </CardContent>
